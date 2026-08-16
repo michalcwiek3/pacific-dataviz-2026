@@ -46,12 +46,14 @@ main { overflow: hidden; } .chapter { position: relative; padding: 130px 7vw; mi
 .presentation-mode .chapter > .presentation-stage-active { display: block; animation: presentation-in .7s ease both; }
 .presentation-mode .chapter > .intro-scene { height: 100vh; min-height: 0; padding-top: 60px; }
 .presentation-mode .sticky-story { width: min(100%, 1024px); height: 100vh; min-height: 0; margin: 0 auto; }
+.presentation-mode .oil-chapter .single-stage + .single-stage { margin-top: 0; }
+.presentation-mode .oil-price-stage { margin-top: 0; }
 .presentation-mode .sticky-story .story-grid { position: absolute; inset: 0; top: 0; height: 100vh; min-height: 0; padding-top: 50px; }
 .presentation-mode .sticky-story .trigger-stack { display: none; }
 .presentation-mode .sticky-story .visual-panel, .presentation-mode .sticky-story .story-copy { opacity: 1; }
 .presentation-mode .sticky-story .story-copy { animation: crossfade .7s ease both; }
 .presentation-mode .solar-story .energy-stage { top: 0; height: 100vh; padding-top: 120px; }
-.presentation-mode .solar-story .closing-scene { position: absolute; inset: 0; height: 100vh; }
+.presentation-mode .solar-story .closing-scene { position: absolute; inset: 0; display: grid; place-items: center; width: 100%; height: 100vh; padding: 0 5%; }
 .presentation-mode .sources { padding: 90px 24px; }
 .deck-progress { position: fixed; z-index: 20; left: 0; bottom: 0; width: var(--progress); height: 3px; background: var(--accent); transition: width .65s ease; }
 @keyframes presentation-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
