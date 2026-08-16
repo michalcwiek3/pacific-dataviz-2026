@@ -28,42 +28,51 @@ app.innerHTML = `
     <section class="chapter geography" data-chapter="geography">
       <div class="chapter-heading"><span>01</span><h2>The unique geography</h2></div>
       <div class="scene intro-scene"><p>Ocean is the connective tissue here, but distance shapes every decision. <strong>Small populations live across large, separated worlds.</strong></p></div>
-      <div class="story-grid">
-        <div class="visual-panel"><svg id="map" role="img" aria-label="Pacific island country map"></svg></div>
-        <div class="story-copy">
-          <article class="step is-active" data-step="0"><span class="step-number">01</span><h3>Separated by water</h3><p>The selected countries sit thousands of kilometres apart, scattered across the world's largest ocean.</p></article>
-          <article class="step" data-step="1"><span class="step-number">02</span><h3>Small communities</h3><p>Population is concentrated in a handful of places. Every island is its own small energy system.</p></article>
-          <article class="step" data-step="2"><span class="step-number">03</span><h3>Many islands, one nation</h3><p>Country borders conceal a more complicated reality: homes and grids spread across separate islands.</p></article>
+      <div class="sticky-story" data-story="geography">
+        <div class="story-grid">
+          <div class="visual-panel"><svg id="map" role="img" aria-label="Pacific island country map"></svg></div>
+          <div class="story-copy">
+            <article class="step is-active" data-step="0"><span class="step-number">01</span><h3>Separated by water</h3><p>The selected countries sit thousands of kilometres apart, scattered across the world's largest ocean.</p></article>
+            <article class="step" data-step="1"><span class="step-number">02</span><h3>Small communities</h3><p>Population is concentrated in a handful of places. Every island is its own small energy system.</p></article>
+            <article class="step" data-step="2"><span class="step-number">03</span><h3>Many islands, one nation</h3><p>Country borders conceal a more complicated reality: homes and grids spread across separate islands.</p></article>
+          </div>
         </div>
+        <div class="trigger-stack"><div class="story-trigger" data-step="0"></div><div class="story-trigger" data-step="1"></div><div class="story-trigger" data-step="2"></div></div>
       </div>
-      <div class="step-track" aria-hidden="true"><div data-trigger="0"></div><div data-trigger="1"></div><div data-trigger="2"></div></div>
     </section>
 
     <section class="chapter oil-chapter" data-chapter="oil">
       <div class="chapter-heading"><span>02</span><h2>Power the islands</h2></div>
       <div class="scene intro-scene"><p>For now, the dependable answer is oil. It travels far, arrives ready to use, and keeps isolated grids moving.</p></div>
-      <div class="story-grid chart-stage">
-        <div class="visual-panel"><svg id="oil-share" role="img" aria-label="Share of power generated from oil"></svg></div>
-        <div class="story-copy">
-          <article class="step is-active"><span class="step-number">01</span><h3>Why oil?</h3><ul class="reasons"><li>Stable enough for isolated grids</li><li>Elastic when demand changes</li><li>Portable across remote ports</li></ul></article>
+      <div class="sticky-story single-stage" data-story="oil-share">
+        <div class="story-grid chart-stage">
+          <div class="visual-panel"><svg id="oil-share" role="img" aria-label="Share of power generated from oil"></svg></div>
+          <div class="story-copy"><article class="step is-active"><span class="step-number">01</span><h3>Why oil?</h3><ul class="reasons"><li>Stable enough for isolated grids</li><li>Elastic when demand changes</li><li>Portable across remote ports</li></ul></article></div>
         </div>
+        <div class="trigger-stack"><div class="story-trigger" data-step="0"></div></div>
       </div>
-      <div class="story-grid oil-price-stage">
-        <div class="visual-panel"><svg id="oil-price" role="img" aria-label="Brent crude oil price over time"></svg></div>
-        <div class="story-copy"><article class="step is-active"><span class="step-number">02</span><h3>A costly connection</h3><p>Prices move sharply. Add the cost of shipping fuel to remote islands, and volatility becomes part of everyday infrastructure.</p></article></div>
+      <div class="sticky-story single-stage" data-story="oil-price">
+        <div class="story-grid oil-price-stage">
+          <div class="visual-panel"><svg id="oil-price" role="img" aria-label="Brent crude oil price over time"></svg></div>
+          <div class="story-copy"><article class="step is-active"><span class="step-number">02</span><h3>A costly connection</h3><p>Prices move sharply. Add the cost of shipping fuel to remote islands, and volatility becomes part of everyday infrastructure.</p></article></div>
+        </div>
+        <div class="trigger-stack"><div class="story-trigger" data-step="0"></div></div>
       </div>
     </section>
 
     <section class="chapter solar-chapter" data-chapter="solar">
       <div class="chapter-heading"><span>03</span><h2>Energy of the paradise</h2></div>
       <div class="scene intro-scene"><p>Solar is becoming more practical. With storage, sunshine can become a flexible part of a steadier, more independent mix.</p></div>
-      <div class="energy-stage">
-        <div class="stage-header"><div><span class="kicker">Energy mix</span><h3 id="mix-title">Latest available year</h3></div><label for="year-range">Year <output id="year-value"></output></label></div>
-        <svg id="energy-mix" role="img" aria-label="Energy mix by country"></svg>
-        <input id="year-range" type="range" min="2000" max="2023" step="1" value="2000" />
-        <div class="mix-key"><span><i class="solar"></i>Solar energy</span><span><i class="renewable"></i>Other renewable</span><span><i class="conventional"></i>Conventional sources</span></div>
+      <div class="sticky-story solar-story" data-story="solar">
+        <div class="energy-stage">
+          <div class="stage-header"><div><span class="kicker">Energy mix</span><h3 id="mix-title">Latest available year</h3></div><label for="year-range">Year <output id="year-value"></output></label></div>
+          <svg id="energy-mix" role="img" aria-label="Energy mix by country"></svg>
+          <input id="year-range" type="range" min="2000" max="2023" step="1" value="2000" />
+          <div class="mix-key"><span><i class="solar"></i>Solar energy</span><span><i class="renewable"></i>Other renewable</span><span><i class="conventional"></i>Conventional sources</span></div>
+        </div>
+        <div class="closing-scene"><p><strong>The goal is not to replace oil overnight.</strong> It is to build a stable mix that can carry each country toward its next chapter.</p></div>
+        <div class="trigger-stack"><div class="story-trigger" data-step="0"></div><div class="story-trigger" data-step="1"></div></div>
       </div>
-      <div class="scene closing-scene"><p><strong>The goal is not to replace oil overnight.</strong> It is to build a stable mix that can carry each country toward its next chapter.</p></div>
     </section>
 
     <footer class="sources"><span class="kicker">Sources & notes</span><p>Population and power generation: <a href="${sources.population}" target="_blank" rel="noreferrer">Pacific Data Hub</a>. Oil prices: <a href="${sources.oil}" target="_blank" rel="noreferrer">Datahub.io / Brent daily</a>. Coordinates are supplied for visual context and are not used as a source.</p><p class="repo-note">Built as a scrollytelling report for GitHub Pages.</p></footer>
@@ -142,6 +151,93 @@ function drawEnergyMix(powerRows, year) {
   data.forEach((d) => { const total = d.solar + d.renewable + d.conventional || 1; let start = 0; [['solar', d.solar], ['renewable', d.renewable], ['conventional', d.conventional]].forEach(([key, value]) => { const pct = (value / total) * 100; svg.append('rect').attr('class', `mix-bar ${key}`).attr('x', x(start)).attr('y', y(d.country)).attr('width', x(start + pct) - x(start)).attr('height', y.bandwidth()).attr('fill', key === 'solar' ? '#efc75e' : key === 'renewable' ? '#4d9b7b' : '#25516b'); start += pct; }); });
 }
 
+function activateStory(story, step, coordinates, populationTotals) {
+  story.dataset.activeStep = step;
+  story.querySelectorAll('.step').forEach((node, index) => node.classList.toggle('is-active', index === step));
+  story.classList.remove('scene-refresh');
+  requestAnimationFrame(() => story.classList.add('scene-refresh'));
+  if (story.dataset.story === 'geography') drawMap(coordinates, populationTotals, step);
+  if (story.dataset.story === 'solar') {
+    story.querySelector('.energy-stage').classList.toggle('is-active', step === 0);
+    story.querySelector('.closing-scene').classList.toggle('is-active', step === 1);
+  }
+}
+
+function setupScrollStories(coordinates, populationTotals) {
+  const stepObserver = new IntersectionObserver((entries) => entries.forEach((entry) => {
+    if (!entry.isIntersecting) return;
+    const story = entry.target.closest('.sticky-story');
+    activateStory(story, Number(entry.target.dataset.step), coordinates, populationTotals);
+  }), { rootMargin: '-42% 0px -42% 0px', threshold: 0 });
+  document.querySelectorAll('.story-trigger').forEach((trigger) => stepObserver.observe(trigger));
+  document.querySelectorAll('.sticky-story').forEach((story) => activateStory(story, 0, coordinates, populationTotals));
+}
+
+function setupPresentation(coordinates, populationTotals) {
+  const masthead = document.querySelector('.masthead');
+  const geography = document.querySelector('[data-chapter="geography"]');
+  const oil = document.querySelector('[data-chapter="oil"]');
+  const solar = document.querySelector('[data-chapter="solar"]');
+  const sourcesFooter = document.querySelector('.sources');
+  const geographyStory = geography.querySelector('[data-story="geography"]');
+  const oilShareStory = oil.querySelector('[data-story="oil-share"]');
+  const oilPriceStory = oil.querySelector('[data-story="oil-price"]');
+  const solarStory = solar.querySelector('[data-story="solar"]');
+  const scenes = [
+    { root: masthead },
+    { root: geography, element: geography.querySelector('.intro-scene') },
+    { root: geography, story: geographyStory, step: 0 },
+    { root: geography, story: geographyStory, step: 1 },
+    { root: geography, story: geographyStory, step: 2 },
+    { root: oil, element: oil.querySelector('.intro-scene') },
+    { root: oil, story: oilShareStory, step: 0 },
+    { root: oil, story: oilPriceStory, step: 0 },
+    { root: solar, element: solar.querySelector('.intro-scene') },
+    { root: solar, story: solarStory, step: 0 },
+    { root: solar, story: solarStory, step: 1 },
+    { root: sourcesFooter }
+  ];
+  let sceneIndex = 0;
+  let isAnimating = false;
+  const progress = document.createElement('div');
+  progress.className = 'deck-progress';
+  progress.setAttribute('aria-hidden', 'true');
+  document.body.append(progress);
+
+  const render = (nextIndex) => {
+    if (nextIndex < 0 || nextIndex >= scenes.length || nextIndex === sceneIndex || isAnimating) return;
+    isAnimating = true;
+    const scene = scenes[nextIndex];
+    document.querySelectorAll('.presentation-active').forEach((node) => node.classList.remove('presentation-active'));
+    document.querySelectorAll('.presentation-stage-active').forEach((node) => node.classList.remove('presentation-stage-active'));
+    scene.root.classList.add('presentation-active');
+    if (scene.element) scene.element.classList.add('presentation-stage-active');
+    if (scene.story) {
+      scene.story.classList.add('presentation-stage-active');
+      activateStory(scene.story, scene.step, coordinates, populationTotals);
+    }
+    sceneIndex = nextIndex;
+    progress.style.setProperty('--progress', `${((sceneIndex + 1) / scenes.length) * 100}%`);
+    window.setTimeout(() => { isAnimating = false; }, 700);
+  };
+
+  document.body.classList.add('presentation-mode');
+  masthead.classList.add('presentation-active');
+  progress.style.setProperty('--progress', `${100 / scenes.length}%`);
+  window.addEventListener('wheel', (event) => {
+    event.preventDefault();
+    if (Math.abs(event.deltaY) < 8) return;
+    render(sceneIndex + (event.deltaY > 0 ? 1 : -1));
+  }, { passive: false });
+  window.addEventListener('keydown', (event) => {
+    const forwardKeys = ['ArrowDown', 'PageDown', ' '];
+    const backwardKeys = ['ArrowUp', 'PageUp'];
+    if (!forwardKeys.includes(event.key) && !backwardKeys.includes(event.key)) return;
+    event.preventDefault();
+    render(sceneIndex + (forwardKeys.includes(event.key) ? 1 : -1));
+  });
+}
+
 async function init() {
   const [population, power, coordinates, oil] = await Promise.all(['population.csv', 'power_generation.csv', 'pacific_island_coordinates.csv', 'brent-daily.csv'].map((file) => fetch(`./data/${file}`).then((response) => response.text()).then(parseCsv)));
   const populationTotals = Object.fromEntries(COUNTRIES.map((country) => [country, d3.max(targetRows(population).filter((row) => row['Pacific Island Countries and territories'] === country), (row) => numeric(row.OBS_VALUE)) || 1]));
@@ -149,8 +245,6 @@ async function init() {
   const range = document.querySelector('#year-range'); range.min = earliest; range.max = latest; range.value = earliest; document.querySelector('#year-value').textContent = earliest;
   drawMap(coordinates, populationTotals); drawOilShare(power); drawOilPrice(oil); drawEnergyMix(power, earliest);
   range.addEventListener('input', (event) => { document.querySelector('#year-value').textContent = event.target.value; drawEnergyMix(power, Number(event.target.value)); });
-  document.querySelectorAll('.step-track [data-trigger]').forEach((trigger) => trigger.addEventListener('mouseenter', () => { const step = Number(trigger.dataset.trigger); document.querySelectorAll('.geography .step').forEach((node, index) => node.classList.toggle('is-active', index === step)); drawMap(coordinates, populationTotals, step); }));
-  const observer = new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); }), { threshold: 0.25 });
-  document.querySelectorAll('.chapter, .sources').forEach((node) => observer.observe(node));
+  setupPresentation(coordinates, populationTotals);
 }
 init().catch((error) => { app.innerHTML += `<p class="error">Could not load the supplied data. ${error.message}</p>`; });

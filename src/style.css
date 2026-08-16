@@ -8,3 +8,50 @@ main { overflow: hidden; } .chapter { position: relative; padding: 130px 7vw; mi
 .map-water { fill: #c8e1df; } .grid-line { stroke: rgba(22,59,77,.12); stroke-dasharray: 2 8; } .map-point circle { stroke: var(--paper); stroke-width: 3; } .map-point text { font-size: 12px; fill: var(--ink); } .axis path, .axis line { stroke: var(--line); } .axis text { fill: var(--muted); font: 12px 'DM Mono', monospace; } .axis .tick line { stroke: rgba(169,196,194,.55); } .value-label { text-anchor: middle; font: 500 13px 'DM Mono', monospace; fill: var(--ink); } .oil-chapter { background: #e4efeb; } .oil-price-stage { margin-top: 240px; } .price-line { fill: none; stroke: #e07a5f; stroke-width: 3; } .peak-dot { fill: #e07a5f; stroke: var(--paper); stroke-width: 4; }
 .solar-chapter { background: #e7e1d2; } .energy-stage { padding: 130px 0 60px; min-height: 900px; } .stage-header { display: flex; justify-content: space-between; align-items: end; } .stage-header h3 { margin: 8px 0 30px; } label { font: 500 12px 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .12em; } output { color: #3d7ea6; } #year-range { display: block; width: 100%; accent-color: #3d7ea6; margin: 38px 0; } .country-label { font-size: 13px; fill: var(--ink); } .mix-bar { transition: width .3s ease, x .3s ease; } .mix-key { display: flex; gap: 28px; font-size: 13px; color: var(--muted); } .mix-key span { display: flex; align-items: center; gap: 8px; } .mix-key i { width: 11px; height: 11px; display: inline-block; } .mix-key .solar { background: #efc75e; } .mix-key .renewable { background: #4d9b7b; } .mix-key .conventional { background: #25516b; } .closing-scene { min-height: 100vh; }
 .sources { padding: 90px 7vw; background: var(--deep); color: #dbece9; opacity: .2; transform: translateY(28px); transition: opacity 800ms ease, transform 800ms ease; } .sources p { max-width: 800px; font-size: 17px; } .sources a { color: var(--accent); } .repo-note { color: #8eb2ae; margin-top: 42px; } .error { padding: 24px; color: #a63c32; } @keyframes fade-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+/* The report is a fixed-width reading canvas with pinned visual chapters. */
+.masthead { padding-left: 24px; padding-right: 24px; }
+.masthead > *, .chapter > *:not(.step-track), .sources > * { width: min(100%, 1024px); margin-left: auto; margin-right: auto; }
+.chapter { padding: 130px 24px 0; min-height: 0; }
+.chapter-heading { width: min(100%, 1024px); }
+.sticky-story { position: relative; width: min(100%, 1024px); }
+.sticky-story:not(.single-stage) { min-height: 300vh; }
+.sticky-story.single-stage { min-height: 100vh; }
+.sticky-story .story-grid { position: sticky; top: 72px; z-index: 2; height: calc(100vh - 96px); min-height: 0; }
+.trigger-stack { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.story-trigger { height: 100vh; }
+.story-trigger:first-child { height: 82vh; }
+.sticky-story .visual-panel, .sticky-story .story-copy { opacity: .8; transition: opacity .5s ease; }
+.sticky-story.scene-refresh .visual-panel, .sticky-story.scene-refresh .story-copy { animation: crossfade .7s ease both; }
+.geography .sticky-story { margin-top: -3vh; }
+.oil-chapter .single-stage + .single-stage { margin-top: 18vh; }
+.solar-story { min-height: 200vh; }
+.solar-story .energy-stage { position: sticky; top: 72px; z-index: 2; height: calc(100vh - 96px); min-height: 0; padding-top: 6vh; transition: opacity .7s ease; }
+.solar-story .closing-scene { position: absolute; inset: 0; z-index: 3; min-height: 0; opacity: 0; pointer-events: none; transition: opacity .7s ease; }
+.solar-story .energy-stage:not(.is-active) { opacity: 0; pointer-events: none; }
+.solar-story .closing-scene.is-active { opacity: 1; }
+.solar-story .story-trigger:first-child { height: 100vh; }
+.solar-story .story-trigger:last-child { height: 100vh; }
+.closing-scene p { margin: auto; }
+@keyframes crossfade { 0% { opacity: .15; transform: translateY(12px); } 100% { opacity: 1; transform: translateY(0); } }
+
+/* Presentation mode keeps the deck in place; wheel and keys select the next scene. */
+.presentation-mode { overflow: hidden; height: 100vh; }
+.presentation-mode main { height: 100vh; overflow: hidden; }
+.presentation-mode .masthead, .presentation-mode .chapter, .presentation-mode .sources { position: fixed; inset: 0; display: none; width: 100%; height: 100vh; min-height: 0; overflow: hidden; padding-top: 0; padding-bottom: 0; opacity: 1; transform: none; }
+.presentation-mode .masthead.presentation-active, .presentation-mode .chapter.presentation-active, .presentation-mode .sources.presentation-active { display: block; animation: presentation-in .7s ease both; }
+.presentation-mode .masthead { padding-top: 66px; padding-bottom: 48px; }
+.presentation-mode .chapter-heading { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); }
+.presentation-mode .chapter > .scene, .presentation-mode .chapter > .sticky-story { display: none; }
+.presentation-mode .chapter > .presentation-stage-active { display: block; animation: presentation-in .7s ease both; }
+.presentation-mode .chapter > .intro-scene { height: 100vh; min-height: 0; padding-top: 60px; }
+.presentation-mode .sticky-story { width: min(100%, 1024px); height: 100vh; min-height: 0; margin: 0 auto; }
+.presentation-mode .sticky-story .story-grid { position: absolute; inset: 0; top: 0; height: 100vh; min-height: 0; padding-top: 50px; }
+.presentation-mode .sticky-story .trigger-stack { display: none; }
+.presentation-mode .sticky-story .visual-panel, .presentation-mode .sticky-story .story-copy { opacity: 1; }
+.presentation-mode .sticky-story .story-copy { animation: crossfade .7s ease both; }
+.presentation-mode .solar-story .energy-stage { top: 0; height: 100vh; padding-top: 120px; }
+.presentation-mode .solar-story .closing-scene { position: absolute; inset: 0; height: 100vh; }
+.presentation-mode .sources { padding: 90px 24px; }
+.deck-progress { position: fixed; z-index: 20; left: 0; bottom: 0; width: var(--progress); height: 3px; background: var(--accent); transition: width .65s ease; }
+@keyframes presentation-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
