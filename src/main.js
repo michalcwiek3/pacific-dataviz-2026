@@ -3,12 +3,12 @@ import './style.css';
 
 const COUNTRIES = ['Fiji', 'French Polynesia', 'Samoa', 'Tonga', 'Tuvalu', 'Vanuatu'];
 const COLORS = {
-  Fiji: '#e07a5f',
-  'French Polynesia': '#3d7ea6',
-  Samoa: '#5f9d75',
-  Tonga: '#b88950',
-  Tuvalu: '#3faaa1',
-  Vanuatu: '#9a6fb0'
+  Fiji: '#e8491c',
+  'French Polynesia': '#1f6fd6',
+  Samoa: '#2fa84f',
+  Tonga: '#f2a70b',
+  Tuvalu: '#0fb3ac',
+  Vanuatu: '#a437d1'
 };
 const sources = {
   population: 'https://stats.pacificdata.org/vis?fs[0]=Topic,0%7CPopulation%23POP%23&pg=0&fc=Topic&bp=true&snb=10&df[ds]=ds%3ASPC2&df[id]=DF_HHCOUNTS&df[ag]=SPC&df[vs]=1.0&dq=A..&lom=LASTNOBSERVATIONS&lo=1&pd=2016,2019&to[TIME_PERIOD]=false',
@@ -80,37 +80,108 @@ app.innerHTML = `
 
 const parseCsv = (text) => d3.csvParse(text);
 const numeric = (value) => Number.parseFloat(String(value).replace(/,/g, '')) || 0;
-const targetRows = (rows, field = 'Pacific Island Countries and territories') => rows.filter((row) => COUNTRIES.includes(row[field]));
 
-function drawMap(coordinates, population, step = 0) {
+function drawMap(coordinates, populationByName, step = 0) {
   const svg = d3.select('#map');
-  const width = 920; const height = 580;
-  svg.attr('viewBox', `0 0 ${width} ${height}`);
-  svg.selectAll('*').remove();
-  // True lat/long projection, used only to derive each point's direction from the group's centre.
-  const trueX = (longitude) => ((longitude + 180) / 360) * width;
-  const trueY = (latitude) => ((latitude + 35) / 75) * height;
-  svg.append('rect').attr('class', 'map-water').attr('width', width).attr('height', height);
+  const width = 920; const height = 572; const marginSide = 74; const marginTop = 55; const pointBottom = 380; const legendY = 496; const captionY = 530;
+  if (svg.attr('viewBox') !== `0 0 ${width} ${height}`) {
+    // Built once; later calls only update the data so d3 can transition between steps instead of hard-swapping the DOM.
+    svg.attr('viewBox', `0 0 ${width} ${height}`);
+    svg.append('rect').attr('class', 'map-water').attr('width', width).attr('height', height);
+    svg.append('g').attr('class', 'map-points');
+    svg.append('g').attr('class', 'map-labels');
+    svg.append('g').attr('class', 'map-legend');
+    svg.append('text').attr('class', 'map-caption').attr('x', width / 2).attr('y', captionY).attr('text-anchor', 'middle');
+  }
+
   const points = coordinates.filter((row) => COUNTRIES.includes(row.country_or_territory));
   const grouped = d3.group(points, (row) => row.country_or_territory);
-  const marks = [];
-  grouped.forEach((rows, country) => {
-    const countryPoint = rows.find((row) => row.location_type === 'country' || row.location_type === 'territory') || rows[0];
-    if (step < 2) marks.push({ country, row: countryPoint, radius: step === 1 ? Math.max(8, Math.sqrt(population[country] || 1) / 150) : 7 });
-    else rows.filter((row, index, all) => all.findIndex((candidate) => candidate.normalized_name === row.normalized_name) === index).forEach((row) => marks.push({ country, row, radius: 5 }));
+  const mainRow = (rows) => rows.find((row) => row.location_type === 'country' || row.location_type === 'territory') || rows[0];
+  const uniqueRows = (country) => (grouped.get(country) || []).filter((row, index, all) => all.findIndex((candidate) => candidate.normalized_name === row.normalized_name) === index);
+  // Coordinates and population name spellings don't always match; try the raw name first, then the normalized one.
+  const popOf = (name, altName) => populationByName.get(name) || populationByName.get(altName);
+  const countryTotal = (country) => populationByName.get(country)?.value || 0;
+
+  // Longitudes near the antimeridian are unwrapped past 180 so the group lays out in its true relative order.
+  const unwrap = (long) => (long < 0 ? long + 360 : long);
+  const anchors = COUNTRIES.map((country) => {
+    const [lat, long] = mainRow(grouped.get(country) || []).coordinates.split(',').map(numeric);
+    return { country, lat, long: unwrap(long) };
   });
-  const trueCoords = marks.map(({ row }) => [trueX(numeric(row.coordinates.split(',')[1])), trueY(numeric(row.coordinates.split(',')[0]))]);
-  const centerX = d3.mean(trueCoords, (d) => d[0]);
-  const centerY = d3.mean(trueCoords, (d) => d[1]);
-  const spread = 0.4; // pull points toward the centre so only relative direction remains, not true scale
-  const project = (row) => {
-    const px = trueX(numeric(row.coordinates.split(',')[1]));
-    const py = trueY(numeric(row.coordinates.split(',')[0]));
-    return [centerX + (px - centerX) * spread, centerY + (py - centerY) * spread];
-  };
-  const groups = svg.append('g').selectAll('g').data(marks).join('g').attr('class', 'map-point').attr('transform', ({ row }) => `translate(${project(row)})`);
-  groups.append('circle').attr('r', ({ radius }) => radius).attr('fill', ({ country }) => COLORS[country]);
-  groups.append('text').attr('x', 10).attr('y', 4).text(({ country }) => country);
+  // Positions fill the whole plot while keeping each country's true relative direction from the others.
+  const layoutX = d3.scaleLinear(d3.extent(anchors, (d) => d.long), [marginSide, width - marginSide]);
+  const layoutY = d3.scaleLinear(d3.extent(anchors, (d) => d.lat), [pointBottom, marginTop]);
+  const positions = new Map(anchors.map((d) => [d.country, [layoutX(d.long), layoutY(d.lat)]]));
+  const radiusScale = d3.scaleSqrt(d3.extent(COUNTRIES, countryTotal), [14, 46]);
+
+  svg.select('.map-legend').selectAll('*').remove();
+  svg.select('.map-caption').text('');
+  if (step >= 1) {
+    // Legend sits in its own reserved strip below the plot, spaced by each label's actual width so gaps read as even.
+    const charWidth = 7.1;
+    const itemGap = 30;
+    const widths = COUNTRIES.map((country) => 10 + 7 + country.length * charWidth);
+    const totalWidth = d3.sum(widths) + itemGap * (COUNTRIES.length - 1);
+    let x = (width - totalWidth) / 2;
+    const legend = svg.select('.map-legend');
+    COUNTRIES.forEach((country, index) => {
+      const item = legend.append('g').attr('transform', `translate(${x},${legendY})`);
+      item.append('circle').attr('r', 5).attr('fill', COLORS[country]);
+      item.append('text').attr('x', 11).attr('y', 4).text(country);
+      x += widths[index] + itemGap;
+    });
+    const yearByCountry = COUNTRIES.map((country) => `${country} ${populationByName.get(country)?.year || '—'}`).join('   ·   ');
+    svg.select('.map-caption').text(`Population year — ${yearByCountry}`);
+  }
+
+  // A stable key per node lets d3 animate size changes and the country-to-islands split, instead of hard-swapping the DOM.
+  let nodes;
+  if (step === 0) {
+    nodes = COUNTRIES.map((country) => ({ key: country, country, x: positions.get(country)[0], y: positions.get(country)[1], r: 12 }));
+  } else if (step === 1) {
+    nodes = COUNTRIES.map((country) => ({ key: country, country, x: positions.get(country)[0], y: positions.get(country)[1], r: radiusScale(countryTotal(country)) }));
+  } else {
+    nodes = COUNTRIES.flatMap((country) => {
+      const [cx, cy] = positions.get(country);
+      const countryRadius = radiusScale(countryTotal(country));
+      const rows = uniqueRows(country);
+      const islands = rows.filter((row) => row !== mainRow(rows))
+        .map((row) => ({ row, pop: popOf(row.input_name, row.normalized_name) }))
+        .filter((entry) => entry.pop);
+      if (!islands.length) return [{ key: country, country, x: cx, y: cy, r: countryRadius }];
+      const total = countryTotal(country) || 1;
+      // Each island's area-share of the country's dot in step 2 matches its real share of the country's population.
+      const targets = islands.map((entry) => ({ key: `${country}::${entry.row.normalized_name}`, country, x: cx, y: cy, r: countryRadius * Math.sqrt(entry.pop.value / total) }));
+      const simulation = d3.forceSimulation(targets)
+        .force('x', d3.forceX(cx).strength(0.4))
+        .force('y', d3.forceY(cy).strength(0.4))
+        .force('collide', d3.forceCollide((d) => d.r + 1.5))
+        .stop();
+      for (let tick = 0; tick < 150; tick += 1) simulation.tick();
+      return targets;
+    });
+  }
+
+  const circles = svg.select('.map-points').selectAll('circle').data(nodes, (d) => d.key);
+  circles.join(
+    (enter) => enter.append('circle').attr('cx', (d) => d.x).attr('cy', (d) => d.y).attr('r', 0).attr('fill', (d) => COLORS[d.country])
+      .call((selection) => selection.transition().duration(700).attr('r', (d) => d.r)),
+    (update) => update.call((selection) => selection.transition().duration(700).attr('cx', (d) => d.x).attr('cy', (d) => d.y).attr('r', (d) => d.r)),
+    (exit) => exit.call((selection) => selection.transition().duration(400).attr('r', 0).remove())
+  );
+
+  const labels = svg.select('.map-labels').selectAll('text').data(step === 0 ? nodes : [], (d) => d.key);
+  labels.join(
+    (enter) => enter.append('text')
+      .attr('text-anchor', (d) => (d.x > width / 2 ? 'end' : 'start'))
+      .attr('x', (d) => d.x + (d.x > width / 2 ? -14 : 14))
+      .attr('y', (d) => d.y + 4)
+      .attr('opacity', 0)
+      .text((d) => d.country)
+      .call((selection) => selection.transition().duration(500).attr('opacity', 1)),
+    (update) => update,
+    (exit) => exit.call((selection) => selection.transition().duration(300).attr('opacity', 0).remove())
+  );
 }
 
 function drawOilShare(powerRows) {
@@ -159,19 +230,19 @@ function drawEnergyMix(powerRows, year) {
   data.forEach((d) => { const total = d.solar + d.renewable + d.conventional || 1; let start = 0; [['solar', d.solar], ['renewable', d.renewable], ['conventional', d.conventional]].forEach(([key, value]) => { const pct = (value / total) * 100; svg.append('rect').attr('class', `mix-bar ${key}`).attr('x', x(start)).attr('y', y(d.country)).attr('width', x(start + pct) - x(start)).attr('height', y.bandwidth()).attr('fill', key === 'solar' ? '#efc75e' : key === 'renewable' ? '#4d9b7b' : '#25516b'); start += pct; }); });
 }
 
-function activateStory(story, step, coordinates, populationTotals) {
+function activateStory(story, step, coordinates, populationByName) {
   story.dataset.activeStep = step;
   story.querySelectorAll('.step').forEach((node, index) => node.classList.toggle('is-active', index === step));
   story.classList.remove('scene-refresh');
   requestAnimationFrame(() => story.classList.add('scene-refresh'));
-  if (story.dataset.story === 'geography') drawMap(coordinates, populationTotals, step);
+  if (story.dataset.story === 'geography') drawMap(coordinates, populationByName, step);
   if (story.dataset.story === 'solar') {
     story.querySelector('.energy-stage').classList.toggle('is-active', step === 0);
     story.querySelector('.closing-scene').classList.toggle('is-active', step === 1);
   }
 }
 
-function setupPresentation(coordinates, populationTotals) {
+function setupPresentation(coordinates, populationByName) {
   const masthead = document.querySelector('.masthead');
   const geography = document.querySelector('[data-chapter="geography"]');
   const oil = document.querySelector('[data-chapter="oil"]');
@@ -212,7 +283,7 @@ function setupPresentation(coordinates, populationTotals) {
     if (scene.element) scene.element.classList.add('presentation-stage-active');
     if (scene.story) {
       scene.story.classList.add('presentation-stage-active');
-      activateStory(scene.story, scene.step, coordinates, populationTotals);
+      activateStory(scene.story, scene.step, coordinates, populationByName);
     }
     sceneIndex = nextIndex;
     progress.style.setProperty('--progress', `${((sceneIndex + 1) / scenes.length) * 100}%`);
@@ -238,11 +309,15 @@ function setupPresentation(coordinates, populationTotals) {
 
 async function init() {
   const [population, power, coordinates, oil] = await Promise.all(['population.csv', 'power_generation.csv', 'pacific_island_coordinates.csv', 'brent-daily.csv'].map((file) => fetch(`./data/${file}`).then((response) => response.text()).then(parseCsv)));
-  const populationTotals = Object.fromEntries(COUNTRIES.map((country) => [country, d3.max(targetRows(population).filter((row) => row['Pacific Island Countries and territories'] === country), (row) => numeric(row.OBS_VALUE)) || 1]));
+  // Population.csv mixes population counts, household counts and average household size per name with no field telling them apart; the population count is always the largest value.
+  const populationByName = d3.rollup(population, (rows) => {
+    const best = rows.reduce((a, b) => (numeric(a.OBS_VALUE) > numeric(b.OBS_VALUE) ? a : b));
+    return { value: numeric(best.OBS_VALUE), year: best.INDICATOR };
+  }, (row) => row['Pacific Island Countries and territories']);
   const years = power.map((row) => numeric(row.TIME_PERIOD)).filter(Boolean); const earliest = d3.min(years) || 2000; const latest = d3.max(years) || earliest;
   const range = document.querySelector('#year-range'); range.min = earliest; range.max = latest; range.value = earliest; document.querySelector('#year-value').textContent = earliest;
-  drawMap(coordinates, populationTotals); drawOilShare(power); drawOilPrice(oil); drawEnergyMix(power, earliest);
+  drawMap(coordinates, populationByName); drawOilShare(power); drawOilPrice(oil); drawEnergyMix(power, earliest);
   range.addEventListener('input', (event) => { document.querySelector('#year-value').textContent = event.target.value; drawEnergyMix(power, Number(event.target.value)); });
-  setupPresentation(coordinates, populationTotals);
+  setupPresentation(coordinates, populationByName);
 }
 init().catch((error) => { app.innerHTML += `<p class="error">Could not load the supplied data. ${error.message}</p>`; });
