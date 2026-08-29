@@ -19,7 +19,6 @@ const sources = {
 const app = document.querySelector('#app');
 app.innerHTML = `
   <header class="masthead">
-    <div class="eyebrow">Pacific energy atlas / 01—03</div>
     <h1>Powering the<br><em>Pacific</em></h1>
     <p class="dek">Six island nations. Vast distances. One urgent question: what makes a resilient energy future?</p>
     <div class="scroll-cue"><span></span>Scroll to explore</div>
@@ -88,10 +87,10 @@ function drawMap(coordinates, population, step = 0) {
   const width = 920; const height = 580;
   svg.attr('viewBox', `0 0 ${width} ${height}`);
   svg.selectAll('*').remove();
-  const x = (longitude) => ((longitude + 180) / 360) * width;
-  const y = (latitude) => ((latitude + 35) / 75) * height;
+  // True lat/long projection, used only to derive each point's direction from the group's centre.
+  const trueX = (longitude) => ((longitude + 180) / 360) * width;
+  const trueY = (latitude) => ((latitude + 35) / 75) * height;
   svg.append('rect').attr('class', 'map-water').attr('width', width).attr('height', height);
-  for (let longitude = -180; longitude <= 180; longitude += 30) svg.append('line').attr('class', 'grid-line').attr('x1', x(longitude)).attr('x2', x(longitude)).attr('y1', 0).attr('y2', height);
   const points = coordinates.filter((row) => COUNTRIES.includes(row.country_or_territory));
   const grouped = d3.group(points, (row) => row.country_or_territory);
   const marks = [];
@@ -100,7 +99,16 @@ function drawMap(coordinates, population, step = 0) {
     if (step < 2) marks.push({ country, row: countryPoint, radius: step === 1 ? Math.max(8, Math.sqrt(population[country] || 1) / 150) : 7 });
     else rows.filter((row, index, all) => all.findIndex((candidate) => candidate.normalized_name === row.normalized_name) === index).forEach((row) => marks.push({ country, row, radius: 5 }));
   });
-  const groups = svg.append('g').selectAll('g').data(marks).join('g').attr('class', 'map-point').attr('transform', ({ row }) => `translate(${x(numeric(row.coordinates.split(',')[1]))},${y(numeric(row.coordinates.split(',')[0]))})`);
+  const trueCoords = marks.map(({ row }) => [trueX(numeric(row.coordinates.split(',')[1])), trueY(numeric(row.coordinates.split(',')[0]))]);
+  const centerX = d3.mean(trueCoords, (d) => d[0]);
+  const centerY = d3.mean(trueCoords, (d) => d[1]);
+  const spread = 0.4; // pull points toward the centre so only relative direction remains, not true scale
+  const project = (row) => {
+    const px = trueX(numeric(row.coordinates.split(',')[1]));
+    const py = trueY(numeric(row.coordinates.split(',')[0]));
+    return [centerX + (px - centerX) * spread, centerY + (py - centerY) * spread];
+  };
+  const groups = svg.append('g').selectAll('g').data(marks).join('g').attr('class', 'map-point').attr('transform', ({ row }) => `translate(${project(row)})`);
   groups.append('circle').attr('r', ({ radius }) => radius).attr('fill', ({ country }) => COLORS[country]);
   groups.append('text').attr('x', 10).attr('y', 4).text(({ country }) => country);
 }
@@ -161,16 +169,6 @@ function activateStory(story, step, coordinates, populationTotals) {
     story.querySelector('.energy-stage').classList.toggle('is-active', step === 0);
     story.querySelector('.closing-scene').classList.toggle('is-active', step === 1);
   }
-}
-
-function setupScrollStories(coordinates, populationTotals) {
-  const stepObserver = new IntersectionObserver((entries) => entries.forEach((entry) => {
-    if (!entry.isIntersecting) return;
-    const story = entry.target.closest('.sticky-story');
-    activateStory(story, Number(entry.target.dataset.step), coordinates, populationTotals);
-  }), { rootMargin: '-42% 0px -42% 0px', threshold: 0 });
-  document.querySelectorAll('.story-trigger').forEach((trigger) => stepObserver.observe(trigger));
-  document.querySelectorAll('.sticky-story').forEach((story) => activateStory(story, 0, coordinates, populationTotals));
 }
 
 function setupPresentation(coordinates, populationTotals) {
