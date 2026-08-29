@@ -46,14 +46,14 @@ app.innerHTML = `
       <div class="scene intro-scene"><p>For now, the dependable answer is oil. It travels far, arrives ready to use, and keeps isolated grids moving.</p></div>
       <div class="sticky-story single-stage" data-story="oil-share">
         <div class="story-grid chart-stage">
-          <div class="visual-panel"><svg id="oil-share" role="img" aria-label="Share of power generated from oil"></svg></div>
+          <div class="visual-panel"><div class="chart-title"><span class="kicker">Oil share</span><h3>Share of power generated from oil</h3></div><svg id="oil-share" role="img" aria-label="Share of power generated from oil"></svg></div>
           <div class="story-copy"><article class="step is-active"><span class="step-number">01</span><h3>Why oil?</h3><ul class="reasons"><li>Stable enough for isolated grids</li><li>Elastic when demand changes</li><li>Portable across remote ports</li></ul></article></div>
         </div>
         <div class="trigger-stack"><div class="story-trigger" data-step="0"></div></div>
       </div>
       <div class="sticky-story single-stage" data-story="oil-price">
         <div class="story-grid oil-price-stage">
-          <div class="visual-panel"><svg id="oil-price" role="img" aria-label="Brent crude oil price over time"></svg></div>
+          <div class="visual-panel"><div class="chart-title"><span class="kicker">Brent crude</span><h3>Oil price per barrel since 2010</h3></div><svg id="oil-price" role="img" aria-label="Brent crude oil price over time"></svg></div>
           <div class="story-copy"><article class="step is-active"><span class="step-number">02</span><h3>A costly connection</h3><p>Prices move sharply. Add the cost of shipping fuel to remote islands, and volatility becomes part of everyday infrastructure.</p></article></div>
         </div>
         <div class="trigger-stack"><div class="story-trigger" data-step="0"></div></div>
