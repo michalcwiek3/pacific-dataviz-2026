@@ -46,14 +46,23 @@ app.innerHTML = `
       <div class="sticky-story single-stage" data-story="oil-share">
         <div class="story-grid chart-stage">
           <div class="visual-panel"><div class="chart-title"><span class="kicker">Oil share</span><h3>Share of power generated from oil</h3></div><svg id="oil-share" role="img" aria-label="Share of power generated from oil"></svg></div>
-          <div class="story-copy"><article class="step is-active"><span class="step-number">01</span><h3>Why oil?</h3><ul class="reasons"><li>Stable enough for isolated grids</li><li>Elastic when demand changes</li><li>Portable across remote ports</li></ul></article></div>
+          <div class="story-copy"><article class="step is-active">
+            <h3>Why oil?</h3>
+            <p>Oil remains dominant in island power systems because it combines several practical advantages that are difficult to match in remote and fragmented environments.</p>
+            <ul class="reasons">
+              <li>Flexible to changing demand</li>
+              <li>Easy to store and transport across remote ports</li>
+              <li>Reliable in isolated locations</li>
+            </ul>
+          </article>
+        </div>
         </div>
         <div class="trigger-stack"><div class="story-trigger" data-step="0"></div></div>
       </div>
       <div class="sticky-story single-stage" data-story="oil-price">
         <div class="story-grid oil-price-stage">
           <div class="visual-panel"><div class="chart-title"><span class="kicker">Brent crude</span><h3>Oil price per barrel since 2010</h3></div><svg id="oil-price" role="img" aria-label="Brent crude oil price over time"></svg></div>
-          <div class="story-copy"><article class="step is-active"><span class="step-number">02</span><h3>A costly connection</h3><p>Prices move sharply. Add the cost of shipping fuel to remote islands, and volatility becomes part of everyday infrastructure.</p></article></div>
+          <div class="story-copy"><article class="step is-active"><h3>A costly connection</h3><p>Oil also comes with significant uncertainty. Fuel prices can change quickly in response to global markets and political events, while supply depends on international trade routes that remote islands cannot control. On top of that, shipping and handling costs add to the already high expense of maintaining an oil-based power system.</p></article></div>
         </div>
         <div class="trigger-stack"><div class="story-trigger" data-step="0"></div></div>
       </div>
@@ -64,7 +73,7 @@ app.innerHTML = `
       <div class="scene intro-scene"><p>Solar energy is becoming an increasingly viable way to reduce the Pacific’s dependence on oil without removing it from the energy mix entirely. With solar panels now widely available, relatively simple to install, and well suited to places with abundant sunlight, island nations have more options for diversifying how their electricity is produced.<br><br>As battery storage becomes more affordable and capable, solar power could take on a much larger role in the grid, while oil-based generation continues to provide reliability when conditions require it.</p></div>
       <div class="sticky-story solar-story" data-story="solar">
         <div class="energy-stage">
-          <div class="stage-header"><div><span class="kicker">Energy mix</span><h3 id="mix-title">Latest available year</h3></div><label for="year-range">Year <output id="year-value"></output></label></div>
+          <div class="stage-header"><div><span class="kicker">Energy mix</span><h3 id="mix-title">Latest available year</h3><p class="stage-subtitle">Use the slider below the plot to explore other years.</p></div><label for="year-range">Year <output id="year-value"></output></label></div>
           <svg id="energy-mix" role="img" aria-label="Energy mix by country"></svg>
           <input id="year-range" type="range" min="2000" max="2023" step="1" value="2000" />
           <div class="mix-key"><span><i class="solar"></i>Solar energy</span><span><i class="renewable"></i>Other renewable</span><span><i class="conventional"></i>Conventional sources</span></div>
@@ -298,7 +307,7 @@ function drawOilShare(powerRows) {
     return { country, value: total ? (oil / total) * 100 : 0 };
   });
   const x = d3.scaleBand(COUNTRIES, [100, width - 35]).padding(0.38); const y = d3.scaleLinear([0, 100], [height - 70, 55]);
-  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${height - 70})`).call(d3.axisBottom(x).tickSize(0));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${height - 70})`).call(d3.axisBottom(x).tickSize(0).tickPadding(16));
   svg.append('g').attr('class', 'axis').attr('transform', 'translate(100,0)').call(d3.axisLeft(y).ticks(5).tickFormat((value) => `${value}%`).tickSize(-width + 135));
   svg.append('g').selectAll('rect').data(values).join('rect').attr('x', (d) => x(d.country)).attr('y', (d) => y(d.value)).attr('width', x.bandwidth()).attr('height', (d) => y(0) - y(d.value)).attr('fill', (d) => COLORS[d.country]);
   svg.append('g').selectAll('text.value').data(values).join('text').attr('class', 'value-label').attr('x', (d) => x(d.country) + x.bandwidth() / 2).attr('y', (d) => y(d.value) - 12).text((d) => `${Math.round(d.value)}%`);
@@ -312,8 +321,6 @@ function drawOilPrice(oilRows) {
   svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${height - 70})`).call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat('%Y')));
   svg.append('g').attr('class', 'axis').attr('transform', 'translate(100,0)').call(d3.axisLeft(y).ticks(5).tickFormat((value) => `$${value}`).tickSize(-width + 135));
   svg.append('path').datum(rows).attr('class', 'price-line').attr('d', d3.line().x((d) => x(d.date)).y((d) => y(d.price)));
-  const peak = rows.reduce((a, b) => a.price > b.price ? a : b);
-  svg.append('circle').attr('class', 'peak-dot').attr('cx', x(peak.date)).attr('cy', y(peak.price)).attr('r', 5);
 }
 
 function drawEnergyMix(powerRows, year) {
@@ -328,7 +335,7 @@ function drawEnergyMix(powerRows, year) {
   });
   const x = d3.scaleLinear([0, 100], [300, width - 55]); const y = d3.scaleBand(COUNTRIES, [55, height - 25]).padding(0.44);
   svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${height - 25})`).call(d3.axisBottom(x).ticks(5).tickFormat((d) => `${d}%`).tickSize(-height + 95));
-  svg.append('g').selectAll('text').data(data).join('text').attr('class', 'country-label').attr('x', 0).attr('y', (d) => y(d.country) + y.bandwidth() / 2 + 5).text((d) => d.country);
+  svg.append('g').selectAll('text').data(data).join('text').attr('class', 'country-label').attr('x', x(0) - 12).attr('text-anchor', 'end').attr('y', (d) => y(d.country) + y.bandwidth() / 2 + 5).text((d) => d.country);
   data.forEach((d) => { const total = d.solar + d.renewable + d.conventional || 1; let start = 0; [['solar', d.solar], ['renewable', d.renewable], ['conventional', d.conventional]].forEach(([key, value]) => { const pct = (value / total) * 100; svg.append('rect').attr('class', `mix-bar ${key}`).attr('x', x(start)).attr('y', y(d.country)).attr('width', x(start + pct) - x(start)).attr('height', y.bandwidth()).attr('fill', key === 'solar' ? '#efc75e' : key === 'renewable' ? '#4d9b7b' : '#25516b'); start += pct; }); });
 }
 
