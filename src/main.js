@@ -80,6 +80,16 @@ app.innerHTML = `
 
 const parseCsv = (text) => d3.csvParse(text);
 const numeric = (value) => Number.parseFloat(String(value).replace(/,/g, '')) || 0;
+// Great-circle distance between two lat/long pairs, in kilometres.
+const haversineKm = (lat1, lon1, lat2, lon2) => {
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+// Filled in the first time drawMap runs so distances are computed only once.
+let islandDistances = null;
 
 function drawMap(coordinates, populationByName, step = 0) {
   const svg = d3.select('#map');
@@ -88,9 +98,11 @@ function drawMap(coordinates, populationByName, step = 0) {
     // Built once; later calls only update the data so d3 can transition between steps instead of hard-swapping the DOM.
     svg.attr('viewBox', `0 0 ${width} ${height}`);
     svg.append('rect').attr('class', 'map-water').attr('width', width).attr('height', height);
+    svg.append('g').attr('class', 'map-hover');
     svg.append('g').attr('class', 'map-points');
     svg.append('g').attr('class', 'map-labels');
     svg.append('g').attr('class', 'map-legend');
+    svg.append('text').attr('class', 'map-hint').attr('x', marginSide).attr('y', height - 18).attr('text-anchor', 'start');
   }
 
   const points = coordinates.filter((row) => COUNTRIES.includes(row.country_or_territory));
@@ -112,6 +124,36 @@ function drawMap(coordinates, populationByName, step = 0) {
   const layoutY = d3.scaleLinear(d3.extent(anchors, (d) => d.lat), [pointBottom, marginTop]);
   const positions = new Map(anchors.map((d) => [d.country, [layoutX(d.long), layoutY(d.lat)]]));
   const radiusScale = d3.scaleSqrt(d3.extent(COUNTRIES, countryTotal), [14, 46]);
+  // Labels are pushed outward from the cluster center so they land clear of the hover distance lines, which run through the middle.
+  const centroid = [d3.mean(COUNTRIES, (c) => positions.get(c)[0]), d3.mean(COUNTRIES, (c) => positions.get(c)[1])];
+  const lineHeight = 14;
+  const labelPosition = (d) => {
+    const dx = d.x - centroid[0]; const dy = d.y - centroid[1];
+    const offset = 18; const verticalOffset = 26;
+    let direction = Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? 'right' : 'left') : (dy >= 0 ? 'bottom' : 'top');
+    const words = d.country.split(' ');
+    // Long, multi-word names are wrapped onto their own line so they don't run past the plot edge.
+    const approxWidth = Math.max(...words.map((word) => word.length)) * 7.2;
+    if (direction === 'right' && d.x + offset + approxWidth > width - marginSide) direction = dy >= 0 ? 'bottom' : 'top';
+    if (direction === 'left' && d.x - offset - approxWidth < marginSide) direction = dy >= 0 ? 'bottom' : 'top';
+    const anchor = direction === 'right' ? 'start' : direction === 'left' ? 'end' : 'middle';
+    const x = direction === 'right' ? d.x + offset : direction === 'left' ? d.x - offset : d.x;
+    const blockHeight = (words.length - 1) * lineHeight;
+    const y = direction === 'top' ? d.y - verticalOffset - blockHeight : direction === 'bottom' ? d.y + verticalOffset : d.y - blockHeight / 2;
+    return { anchor, x, y, words };
+  };
+
+  svg.select('.map-hint').text(step === 0 ? 'Hover a country to see the distance between capital islands' : '');
+
+  if (!islandDistances) {
+    islandDistances = {};
+    anchors.forEach(({ country: a, lat: latA, long: longA }) => {
+      islandDistances[a] = {};
+      anchors.forEach(({ country: b, lat: latB, long: longB }) => {
+        if (a !== b) islandDistances[a][b] = haversineKm(latA, longA, latB, longB);
+      });
+    });
+  }
 
   svg.select('.map-legend').selectAll('*').remove();
   if (step >= 1) {
@@ -166,14 +208,36 @@ function drawMap(coordinates, populationByName, step = 0) {
     (exit) => exit.call((selection) => selection.transition().duration(400).attr('r', 0).remove())
   );
 
+  const hoverLayer = svg.select('.map-hover');
+  hoverLayer.selectAll('*').remove();
+  if (step === 0) {
+    const showLinesTo = (country) => {
+      const [x1, y1] = positions.get(country);
+      hoverLayer.selectAll('*').remove();
+      COUNTRIES.filter((other) => other !== country).forEach((other) => {
+        const [x2, y2] = positions.get(other);
+        hoverLayer.append('line').attr('x1', x1).attr('y1', y1).attr('x2', x2).attr('y2', y2);
+        hoverLayer.append('text').attr('x', (x1 + x2) / 2).attr('y', (y1 + y2) / 2).attr('dy', '0.35em').text(`${Math.round(islandDistances[country][other])} km`);
+      });
+    };
+    circles.on('mouseenter', (_event, d) => showLinesTo(d.country)).on('mouseleave', () => hoverLayer.selectAll('*').remove());
+  } else {
+    circles.on('mouseenter', null).on('mouseleave', null);
+  }
+
   const labels = svg.select('.map-labels').selectAll('text').data(step === 0 ? nodes : [], (d) => d.key);
   labels.join(
     (enter) => enter.append('text')
-      .attr('text-anchor', (d) => (d.x > width / 2 ? 'end' : 'start'))
-      .attr('x', (d) => d.x + (d.x > width / 2 ? -14 : 14))
-      .attr('y', (d) => d.y + 4)
+      .attr('text-anchor', (d) => labelPosition(d).anchor)
+      .attr('y', (d) => labelPosition(d).y)
       .attr('opacity', 0)
-      .text((d) => d.country)
+      .each(function each(d) {
+        const pos = labelPosition(d);
+        d3.select(this).selectAll('tspan').data(pos.words).join('tspan')
+          .attr('x', pos.x)
+          .attr('dy', (_word, i) => (i === 0 ? '0.32em' : lineHeight))
+          .text((word) => word);
+      })
       .call((selection) => selection.transition().duration(500).attr('opacity', 1)),
     (update) => update,
     (exit) => exit.call((selection) => selection.transition().duration(300).attr('opacity', 0).remove())
