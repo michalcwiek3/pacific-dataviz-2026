@@ -55,9 +55,9 @@ main { overflow: hidden; } .chapter { position: relative; padding: 130px 7vw; mi
 .presentation-mode .sticky-story .trigger-stack { display: none; }
 .presentation-mode .sticky-story .visual-panel, .presentation-mode .sticky-story .story-copy { opacity: 1; }
 .presentation-mode .sticky-story .story-copy { animation: crossfade .7s ease both; }
-.presentation-mode .solar-story .energy-stage { top: 0; height: 100%; min-height: 0; padding-top: 110px; display: flex; flex-direction: column; }
+.presentation-mode .solar-story .energy-stage { top: 0; height: 100%; min-height: 0; padding-top: 110px; display: flex; flex-direction: column; justify-content: center; }
 .presentation-mode .solar-story .energy-stage .stage-header, .presentation-mode .solar-story .energy-stage .mix-key { flex-shrink: 0; }
-.presentation-mode .solar-story .energy-stage svg { flex: 1; min-height: 0; }
+.presentation-mode .solar-story .energy-stage svg { flex: 0 1 auto; min-height: 0; width: 100%; aspect-ratio: 1260 / 500; max-height: 100%; }
 .presentation-mode .solar-story .energy-stage #year-range { flex-shrink: 0; margin: 16px 0 16px 14.81%; }
 .presentation-mode .solar-story .closing-scene { position: absolute; inset: 0; display: grid; place-items: center; width: 100%; height: 100%; padding: 0 5%; }
 .presentation-mode .chapter:has(.closing-scene.is-active) .chapter-heading { display: none; }
