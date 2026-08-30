@@ -144,7 +144,7 @@ function drawMap(coordinates, populationByName, step = 0) {
     return { anchor, x, y, words };
   };
 
-  svg.select('.map-hint').text(step === 0 ? 'Hover a country to see the distance between capital islands' : step === 1 ? 'Hover a country to see its population' : '');
+  svg.select('.map-hint').text(step === 0 ? 'Hover a country to see the distance between capital islands' : step === 1 ? 'Hover a country to see its population' : step === 2 ? 'Hover an island to see its population' : '');
 
   if (!islandDistances) {
     islandDistances = {};
@@ -190,10 +190,10 @@ function drawMap(coordinates, populationByName, step = 0) {
       const islands = rows.filter((row) => row !== mainRow(rows))
         .map((row) => ({ row, pop: popOf(row.input_name, row.normalized_name) }))
         .filter((entry) => entry.pop);
-      if (!islands.length) return [{ key: country, country, x: cx, y: cy, r: countryRadius }];
+      if (!islands.length) return [{ key: country, country, island: mainRow(rows)?.input_name || country, population: countryTotal(country), year: populationByName.get(country)?.year, x: cx, y: cy, r: countryRadius }];
       const total = countryTotal(country) || 1;
       // Each island's area-share of the country's dot in step 2 matches its real share of the country's population.
-      const targets = islands.map((entry) => ({ key: `${country}::${entry.row.normalized_name}`, country, x: cx, y: cy, r: countryRadius * Math.sqrt(entry.pop.value / total) }));
+      const targets = islands.map((entry) => ({ key: `${country}::${entry.row.normalized_name}`, country, island: entry.row.input_name, population: entry.pop.value, year: entry.pop.year, x: cx, y: cy, r: countryRadius * Math.sqrt(entry.pop.value / total) }));
       const simulation = d3.forceSimulation(targets)
         .force('x', d3.forceX(cx).strength(0.4))
         .force('y', d3.forceY(cy).strength(0.4))
@@ -204,13 +204,32 @@ function drawMap(coordinates, populationByName, step = 0) {
     });
   }
 
-  const circles = svg.select('.map-points').selectAll('circle').data(nodes, (d) => d.key);
-  circles.join(
+  const circles = svg.select('.map-points').selectAll('circle').data(nodes, (d) => d.key).join(
     (enter) => enter.append('circle').attr('cx', (d) => d.x).attr('cy', (d) => d.y).attr('r', 0).attr('fill', (d) => COLORS[d.country])
       .call((selection) => selection.transition().duration(700).attr('r', (d) => d.r)),
     (update) => update.call((selection) => selection.transition().duration(700).attr('cx', (d) => d.x).attr('cy', (d) => d.y).attr('r', (d) => d.r)),
     (exit) => exit.call((selection) => selection.transition().duration(400).attr('r', 0).remove())
   );
+
+  // Renders a rounded, country-tinted frame with a bold title line and a value line beneath it, right-aligned to the plot margin.
+  const renderPopulationFrame = (title, value, color) => {
+    populationNote.selectAll('*').remove().attr('transform', null);
+    const anchorX = width - marginSide; const anchorY = marginTop + 34;
+    const text = populationNote.append('text').attr('class', 'map-note-text').attr('text-anchor', 'middle');
+    text.append('tspan').attr('x', anchorX).attr('y', anchorY).attr('dy', '-0.5em').attr('font-weight', '700').text(title);
+    text.append('tspan').attr('x', anchorX).attr('dy', '1.3em').text(value);
+    // Shift the block left by half its measured width so its right edge lands on the plot's inner margin.
+    const shiftX = -text.node().getBBox().width / 2;
+    text.selectAll('tspan').attr('x', anchorX + shiftX);
+    const box = text.node().getBBox();
+    const padX = 16; const padY = 10;
+    populationNote.insert('rect', 'text')
+      .attr('class', 'map-note-frame')
+      .attr('x', box.x - padX).attr('y', box.y - padY)
+      .attr('width', box.width + padX * 2).attr('height', box.height + padY * 2)
+      .attr('rx', 10)
+      .attr('fill', color).attr('fill-opacity', 0.3);
+  };
 
   const hoverLayer = svg.select('.map-hover');
   hoverLayer.selectAll('*').remove();
@@ -227,26 +246,17 @@ function drawMap(coordinates, populationByName, step = 0) {
     circles.on('mouseenter', (_event, d) => showLinesTo(d.country)).on('mouseleave', () => hoverLayer.selectAll('*').remove());
   } else if (step === 1) {
     const showPopulationFor = (country) => {
-      populationNote.selectAll('*').remove().attr('transform', null);
       const year = populationByName.get(country)?.year;
       const value = `${d3.format(',')(Math.round(countryTotal(country)))}${year ? ` (${year})` : ''}`;
-      const anchorX = width - marginSide; const anchorY = marginTop + 34;
-      const text = populationNote.append('text').attr('class', 'map-note-text').attr('text-anchor', 'middle');
-      text.append('tspan').attr('x', anchorX).attr('y', anchorY).attr('dy', '-0.5em').attr('font-weight', '700').text(country);
-      text.append('tspan').attr('x', anchorX).attr('dy', '1.3em').text(value);
-      // Shift the block left by half its measured width so its right edge lands on the plot's inner margin.
-      const shiftX = -text.node().getBBox().width / 2;
-      text.selectAll('tspan').attr('x', anchorX + shiftX);
-      const box = text.node().getBBox();
-      const padX = 16; const padY = 10;
-      populationNote.insert('rect', 'text')
-        .attr('class', 'map-note-frame')
-        .attr('x', box.x - padX).attr('y', box.y - padY)
-        .attr('width', box.width + padX * 2).attr('height', box.height + padY * 2)
-        .attr('rx', 10)
-        .attr('fill', COLORS[country]).attr('fill-opacity', 0.3);
+      renderPopulationFrame(country, value, COLORS[country]);
     };
     circles.on('mouseenter', (_event, d) => showPopulationFor(d.country)).on('mouseleave', () => populationNote.selectAll('*').remove());
+  } else if (step === 2) {
+    const showIslandPopulation = (d) => {
+      const value = `${d3.format(',')(Math.round(d.population))}${d.year ? ` (${d.year})` : ''}`;
+      renderPopulationFrame(`${d.country} \u2013 ${d.island}`, value, COLORS[d.country]);
+    };
+    circles.on('mouseenter', (_event, d) => showIslandPopulation(d)).on('mouseleave', () => populationNote.selectAll('*').remove());
   } else {
     circles.on('mouseenter', null).on('mouseleave', null);
   }
