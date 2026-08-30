@@ -85,9 +85,9 @@ app.innerHTML = `
 
     <footer class="sources">
       <span class="kicker">Sources & notes</span>
-      <p>The project was created for <a href="https://pacificdatavizchallenge.org/#statistics" target="_blank" rel="noreferrer">Pacific Dataviz Challenge 2026</a>. The code is available on <a href="https://github.com/michalcwiek3/pacific-dataviz-2026" target="_blank" rel="noreferrer">GitHub</a>.</p>
+      <p>The project was created for <a href="https://pacificdatavizchallenge.org/#statistics" target="_blank" rel="noreferrer">Pacific Dataviz Challenge 2026</a>. The six countries included in the project were selected based on the availability of detailed population data. The code is available on <a href="https://github.com/michalcwiek3/pacific-dataviz-2026" target="_blank" rel="noreferrer">GitHub</a>.</p>
       <p>Pacific Data Hub data used: <a href="${sources.population}" target="_blank" rel="noreferrer">population</a> and <a href="${sources.generation}" target="_blank" rel="noreferrer">power generation</a>. Other sources, oil prices: <a href="${sources.oil}" target="_blank" rel="noreferrer">Datahub.io / Brent daily</a>. Coordinates are supplied for visual context and are not used as a source.</p>
-      <p>Built with vanilla JavaScript and <a href="https://d3js.org/" target="_blank" rel="noreferrer">D3.js</a> for the data visuals, plain HTML/CSS for layout and typography, and bundled with <a href="https://vitejs.dev/" target="_blank" rel="noreferrer">Vite</a>.</p><p class="repo-note">Built as a scrollytelling report for GitHub Pages.</p></footer>
+      <p>Built with vanilla JavaScript and <a href="https://d3js.org/" target="_blank" rel="noreferrer">D3.js</a> for the data visuals, plain HTML/CSS for layout and typography, and bundled with <a href="https://vitejs.dev/" target="_blank" rel="noreferrer">Vite</a>.</p></footer>
   </main>
 `;
 
