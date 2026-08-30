@@ -183,6 +183,8 @@ function drawMap(coordinates, populationByName, step = 0) {
   } else if (step === 1) {
     nodes = COUNTRIES.map((country) => ({ key: country, country, x: positions.get(country)[0], y: positions.get(country)[1], r: radiusScale(countryTotal(country)) }));
   } else {
+    // Samoa's regional survey areas are combined down to its two real islands; every other country keeps one dot per surveyed area.
+    const islandGroup = (country, row) => (country === 'Samoa' ? (/savai/i.test(row.normalized_name) ? 'Savaii' : 'Upolu') : row.normalized_name);
     nodes = COUNTRIES.flatMap((country) => {
       const [cx, cy] = positions.get(country);
       const countryRadius = radiusScale(countryTotal(country));
@@ -190,10 +192,14 @@ function drawMap(coordinates, populationByName, step = 0) {
       const islands = rows.filter((row) => row !== mainRow(rows))
         .map((row) => ({ row, pop: popOf(row.input_name, row.normalized_name) }))
         .filter((entry) => entry.pop);
-      if (!islands.length) return [{ key: country, country, island: mainRow(rows)?.input_name || country, population: countryTotal(country), year: populationByName.get(country)?.year, x: cx, y: cy, r: countryRadius }];
+      if (!islands.length) return [{ key: country, country, island: mainRow(rows)?.normalized_name || country, population: countryTotal(country), year: populationByName.get(country)?.year, x: cx, y: cy, r: countryRadius }];
       const total = countryTotal(country) || 1;
       // Each island's area-share of the country's dot in step 2 matches its real share of the country's population.
-      const targets = islands.map((entry) => ({ key: `${country}::${entry.row.normalized_name}`, country, island: entry.row.input_name, population: entry.pop.value, year: entry.pop.year, x: cx, y: cy, r: countryRadius * Math.sqrt(entry.pop.value / total) }));
+      const targets = d3.groups(islands, (entry) => islandGroup(country, entry.row)).map(([island, entries]) => {
+        const population = d3.sum(entries, (entry) => entry.pop.value);
+        const year = d3.max(entries, (entry) => entry.pop.year);
+        return { key: `${country}::${island}`, country, island, population, year, x: cx, y: cy, r: countryRadius * Math.sqrt(population / total) };
+      });
       const simulation = d3.forceSimulation(targets)
         .force('x', d3.forceX(cx).strength(0.4))
         .force('y', d3.forceY(cy).strength(0.4))
