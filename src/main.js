@@ -3,12 +3,12 @@ import './style.css';
 
 const COUNTRIES = ['Fiji', 'French Polynesia', 'Samoa', 'Tonga', 'Tuvalu', 'Vanuatu'];
 const COLORS = {
-  Fiji: '#e8491c',
-  'French Polynesia': '#1f6fd6',
-  Samoa: '#2fa84f',
-  Tonga: '#f2a70b',
-  Tuvalu: '#0fb3ac',
-  Vanuatu: '#a437d1'
+  Fiji: '#1f5fa8',
+  'French Polynesia': '#a97c50',
+  Samoa: '#2f8f5b',
+  Tonga: '#c9a227',
+  Tuvalu: '#3fb6c9',
+  Vanuatu: '#8aab4f'
 };
 const sources = {
   population: 'https://stats.pacificdata.org/vis?fs[0]=Topic,0%7CPopulation%23POP%23&pg=0&fc=Topic&bp=true&snb=10&df[ds]=ds%3ASPC2&df[id]=DF_HHCOUNTS&df[ag]=SPC&df[vs]=1.0&dq=A..&lom=LASTNOBSERVATIONS&lo=1&pd=2016,2019&to[TIME_PERIOD]=false',
@@ -31,9 +31,9 @@ app.innerHTML = `
         <div class="story-grid">
           <div class="visual-panel"><svg id="map" role="img" aria-label="Pacific island country map"></svg></div>
           <div class="story-copy">
-            <article class="step is-active" data-step="0"><span class="step-number">01</span><h3>Separated by water</h3><p>Pacific nations face challenges unlike those of almost any other region on the planet. Scattered across remote parts of the ocean, they must rely on their own resilience, resourcefulness, and adaptability.</p></article>
-            <article class="step" data-step="1"><span class="step-number">02</span><h3>Small nations, great diversity</h3><p>Isolation does not make the Pacific uniform. These nations differ enormously in population, from tiny communities of only a few thousand people to countries with populations in the hundreds of thousands. Population density, urbanisation, and settlement patterns vary just as widely.</p></article>
-            <article class="step" data-step="2"><span class="step-number">03</span><h3>Fragmented by the Ocean</h3><p>Many Pacific nations are not built around a single island. Their territory is divided among dozens, or even hundreds of islands, often separated by long stretches of open water. National borders may connect them politically, but geography keeps their communities physically apart.</p></article>
+            <article class="step is-active" data-step="0"><h3>Separated by water</h3><p>Pacific nations face challenges unlike those of almost any other region on the planet. Scattered across remote parts of the ocean, they must rely on their own resilience, resourcefulness, and adaptability.</p></article>
+            <article class="step" data-step="1"><h3>Small nations, great diversity</h3><p>Isolation does not make the Pacific uniform. These nations differ enormously in population, from tiny communities of only a few thousand people to countries with populations in the hundreds of thousands. Population density, urbanisation, and settlement patterns vary just as widely.</p></article>
+            <article class="step" data-step="2"><h3>Fragmented by the Ocean</h3><p>Many Pacific nations are not built around a single island. Their territory is divided among dozens, or even hundreds of islands, often separated by long stretches of open water. National borders may connect them politically, but geography keeps their communities physically apart.</p></article>
           </div>
         </div>
         <div class="trigger-stack"><div class="story-trigger" data-step="0"></div><div class="story-trigger" data-step="1"></div><div class="story-trigger" data-step="2"></div></div>
@@ -83,7 +83,7 @@ const numeric = (value) => Number.parseFloat(String(value).replace(/,/g, '')) ||
 
 function drawMap(coordinates, populationByName, step = 0) {
   const svg = d3.select('#map');
-  const width = 920; const height = 572; const marginSide = 74; const marginTop = 55; const pointBottom = 380; const legendY = 496; const captionY = 530;
+  const width = 920; const height = 572; const marginSide = 74; const marginTop = 55; const pointBottom = 380; const legendY = 496;
   if (svg.attr('viewBox') !== `0 0 ${width} ${height}`) {
     // Built once; later calls only update the data so d3 can transition between steps instead of hard-swapping the DOM.
     svg.attr('viewBox', `0 0 ${width} ${height}`);
@@ -91,7 +91,6 @@ function drawMap(coordinates, populationByName, step = 0) {
     svg.append('g').attr('class', 'map-points');
     svg.append('g').attr('class', 'map-labels');
     svg.append('g').attr('class', 'map-legend');
-    svg.append('text').attr('class', 'map-caption').attr('x', width / 2).attr('y', captionY).attr('text-anchor', 'middle');
   }
 
   const points = coordinates.filter((row) => COUNTRIES.includes(row.country_or_territory));
@@ -115,7 +114,6 @@ function drawMap(coordinates, populationByName, step = 0) {
   const radiusScale = d3.scaleSqrt(d3.extent(COUNTRIES, countryTotal), [14, 46]);
 
   svg.select('.map-legend').selectAll('*').remove();
-  svg.select('.map-caption').text('');
   if (step >= 1) {
     // Legend sits in its own reserved strip below the plot, spaced by each label's actual width so gaps read as even.
     const charWidth = 7.1;
@@ -130,8 +128,6 @@ function drawMap(coordinates, populationByName, step = 0) {
       item.append('text').attr('x', 11).attr('y', 4).text(country);
       x += widths[index] + itemGap;
     });
-    const yearByCountry = COUNTRIES.map((country) => `${country} ${populationByName.get(country)?.year || '—'}`).join('   ·   ');
-    svg.select('.map-caption').text(`Population year — ${yearByCountry}`);
   }
 
   // A stable key per node lets d3 animate size changes and the country-to-islands split, instead of hard-swapping the DOM.
