@@ -36,10 +36,10 @@ main { overflow: hidden; } .chapter { position: relative; padding: 130px 7vw; mi
 .closing-scene p { margin: auto; text-align: center; }
 @keyframes crossfade { 0% { opacity: .15; transform: translateY(12px); } 100% { opacity: 1; transform: translateY(0); } }
 
-/* Presentation mode keeps the deck in place; wheel and keys select the next scene. Every scene is capped at 1366x700 and centered on screen so it always fits without scrolling. */
+/* Presentation mode keeps the deck in place; wheel and keys select the next scene. Each scene's background always fills the full window; the readable content inside stays capped at 1024px via the ".masthead > *, .chapter > *, .sources > *" rule. */
 .presentation-mode { overflow: hidden; height: 100vh; }
 .presentation-mode main { height: 100vh; overflow: hidden; }
-.presentation-mode .masthead, .presentation-mode .chapter, .presentation-mode .sources { position: fixed; inset: 0; margin: auto; display: none; width: min(1366px, 100vw); height: 100vh; min-height: 0; overflow: hidden; padding-top: 0; padding-bottom: 0; opacity: 1; transform: none; }
+.presentation-mode .masthead, .presentation-mode .chapter, .presentation-mode .sources { position: fixed; inset: 0; margin: auto; display: none; width: 100vw; height: 100vh; min-height: 0; overflow: hidden; padding-top: 0; padding-bottom: 0; opacity: 1; transform: none; }
 .presentation-mode .masthead.presentation-active, .presentation-mode .chapter.presentation-active, .presentation-mode .sources.presentation-active { display: block; animation: presentation-in .7s ease both; }
 .presentation-mode .masthead.presentation-active { display: flex; }
 .presentation-mode .masthead { padding-top: 36px; padding-bottom: 36px; }
