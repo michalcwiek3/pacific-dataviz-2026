@@ -26,7 +26,7 @@ app.innerHTML = `
   <main>
     <section class="chapter geography" data-chapter="geography">
       <div class="chapter-heading"><span>01</span><h2>The unique geography</h2></div>
-      <div class="scene intro-scene"><p>Ocean is the connective tissue here, but distance shapes every decision. <strong>Small populations live across large, separated worlds.</strong></p></div>
+      <div class="scene intro-scene"><p>The Pacific is a region where geography shapes almost everything. Distance, scale, and isolation influence how countries function, how communities connect, and how infrastructure can be built and maintained. To understand the challenges these nations face, we first need to understand the space they occupy. <strong>Small populations live across large, separated worlds.</strong></p></div>
       <div class="sticky-story" data-story="geography">
         <div class="story-grid">
           <div class="visual-panel"><svg id="map" role="img" aria-label="Pacific island country map"></svg></div>
@@ -42,7 +42,7 @@ app.innerHTML = `
 
     <section class="chapter oil-chapter" data-chapter="oil">
       <div class="chapter-heading"><span>02</span><h2>Power the islands</h2></div>
-      <div class="scene intro-scene"><p>For now, the dependable answer is oil. It travels far, arrives ready to use, and keeps isolated grids moving.</p></div>
+      <div class="scene intro-scene"><p>Producing electricity in remote island communities is a challenge in itself. Energy is the foundation of almost everything, from homes and hospitals to schools, businesses, communications, and transport infrastructure. For these communities to function, power has to be available wherever people live.<br><br>Today, much of that electricity is still generated from oil-based fuels, especially diesel. The reason is simple: it is reliable, flexible, and easy to scale. A power system can range from a small generator serving a handful of buildings to a larger power station supplying an entire neighbourhood or island.</p></div>
       <div class="sticky-story single-stage" data-story="oil-share">
         <div class="story-grid chart-stage">
           <div class="visual-panel"><div class="chart-title"><span class="kicker">Oil share</span><h3>Share of power generated from oil</h3></div><svg id="oil-share" role="img" aria-label="Share of power generated from oil"></svg></div>
@@ -60,8 +60,8 @@ app.innerHTML = `
     </section>
 
     <section class="chapter solar-chapter" data-chapter="solar">
-      <div class="chapter-heading"><span>03</span><h2>Energy of the paradise</h2></div>
-      <div class="scene intro-scene"><p>Solar is becoming more practical. With storage, sunshine can become a flexible part of a steadier, more independent mix.</p></div>
+      <div class="chapter-heading"><span>03</span><h2>Turning to the Sun</h2></div>
+      <div class="scene intro-scene"><p>Solar energy is becoming an increasingly viable way to reduce the Pacific’s dependence on oil without removing it from the energy mix entirely. With solar panels now widely available, relatively simple to install, and well suited to places with abundant sunlight, island nations have more options for diversifying how their electricity is produced.<br><br>As battery storage becomes more affordable and capable, solar power could take on a much larger role in the grid, while oil-based generation continues to provide reliability when conditions require it.</p></div>
       <div class="sticky-story solar-story" data-story="solar">
         <div class="energy-stage">
           <div class="stage-header"><div><span class="kicker">Energy mix</span><h3 id="mix-title">Latest available year</h3></div><label for="year-range">Year <output id="year-value"></output></label></div>
