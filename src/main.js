@@ -73,7 +73,7 @@ app.innerHTML = `
       <div class="scene intro-scene"><p>Solar energy is becoming an increasingly viable way to reduce the Pacific’s dependence on oil without removing it from the energy mix entirely. With solar panels now widely available, relatively simple to install, and well suited to places with abundant sunlight, island nations have more options for diversifying how their electricity is produced.<br><br>As battery storage becomes more affordable and capable, solar power could take on a much larger role in the grid, while oil-based generation continues to provide reliability when conditions require it.</p></div>
       <div class="sticky-story solar-story" data-story="solar">
         <div class="energy-stage">
-          <div class="stage-header"><div><span class="kicker">Energy mix</span><h3 id="mix-title">Latest available year</h3><p class="stage-subtitle">Use the slider below the plot to explore other years.</p></div><label for="year-range">Year <output id="year-value"></output></label></div>
+          <div class="stage-header"><div><h3 id="mix-title">Latest available year</h3><p class="stage-subtitle">Use the slider below the plot to explore other years.</p></div><label for="year-range">Year <output id="year-value"></output></label></div>
           <svg id="energy-mix" role="img" aria-label="Energy mix by country"></svg>
           <input id="year-range" type="range" min="2000" max="2023" step="1" value="2000" />
           <div class="mix-key"><span><i class="solar"></i>Solar energy</span><span><i class="renewable"></i>Other renewable</span><span><i class="conventional"></i>Conventional sources</span></div>
@@ -333,8 +333,8 @@ function drawEnergyMix(powerRows, year) {
     const total = d3.sum(yearRows, (row) => numeric(row.OBS_VALUE));
     return { country, solar, renewable, conventional: Math.max(0, total - solar - renewable) };
   });
-  const x = d3.scaleLinear([0, 100], [300, width - 55]); const y = d3.scaleBand(COUNTRIES, [55, height - 25]).padding(0.44);
-  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${height - 25})`).call(d3.axisBottom(x).ticks(5).tickFormat((d) => `${d}%`).tickSize(-height + 95));
+  const x = d3.scaleLinear([0, 100], [300, width - 55]); const y = d3.scaleBand(COUNTRIES, [10, height - 25]).padding(0.44);
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${height - 25})`).call(d3.axisBottom(x).ticks(5).tickFormat((d) => `${d}%`).tickSize(-height + 50));
   svg.append('g').selectAll('text').data(data).join('text').attr('class', 'country-label').attr('x', x(0) - 12).attr('text-anchor', 'end').attr('y', (d) => y(d.country) + y.bandwidth() / 2 + 5).text((d) => d.country);
   data.forEach((d) => { const total = d.solar + d.renewable + d.conventional || 1; let start = 0; [['solar', d.solar], ['renewable', d.renewable], ['conventional', d.conventional]].forEach(([key, value]) => { const pct = (value / total) * 100; svg.append('rect').attr('class', `mix-bar ${key}`).attr('x', x(start)).attr('y', y(d.country)).attr('width', x(start + pct) - x(start)).attr('height', y.bandwidth()).attr('fill', key === 'solar' ? '#efc75e' : key === 'renewable' ? '#4d9b7b' : '#25516b'); start += pct; }); });
 }
