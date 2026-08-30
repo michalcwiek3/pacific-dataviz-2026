@@ -102,6 +102,7 @@ function drawMap(coordinates, populationByName, step = 0) {
     svg.append('g').attr('class', 'map-points');
     svg.append('g').attr('class', 'map-labels');
     svg.append('g').attr('class', 'map-legend');
+    svg.append('g').attr('class', 'map-population-note');
     svg.append('text').attr('class', 'map-hint').attr('x', marginSide).attr('y', height - 18).attr('text-anchor', 'start');
   }
 
@@ -143,7 +144,7 @@ function drawMap(coordinates, populationByName, step = 0) {
     return { anchor, x, y, words };
   };
 
-  svg.select('.map-hint').text(step === 0 ? 'Hover a country to see the distance between capital islands' : '');
+  svg.select('.map-hint').text(step === 0 ? 'Hover a country to see the distance between capital islands' : step === 1 ? 'Hover a country to see its population' : '');
 
   if (!islandDistances) {
     islandDistances = {};
@@ -171,6 +172,9 @@ function drawMap(coordinates, populationByName, step = 0) {
       x += widths[index] + itemGap;
     });
   }
+
+  const populationNote = svg.select('.map-population-note');
+  populationNote.selectAll('*').remove();
 
   // A stable key per node lets d3 animate size changes and the country-to-islands split, instead of hard-swapping the DOM.
   let nodes;
@@ -221,6 +225,28 @@ function drawMap(coordinates, populationByName, step = 0) {
       });
     };
     circles.on('mouseenter', (_event, d) => showLinesTo(d.country)).on('mouseleave', () => hoverLayer.selectAll('*').remove());
+  } else if (step === 1) {
+    const showPopulationFor = (country) => {
+      populationNote.selectAll('*').remove().attr('transform', null);
+      const year = populationByName.get(country)?.year;
+      const value = `${d3.format(',')(Math.round(countryTotal(country)))}${year ? ` (${year})` : ''}`;
+      const anchorX = width - marginSide; const anchorY = marginTop + 34;
+      const text = populationNote.append('text').attr('class', 'map-note-text').attr('text-anchor', 'middle');
+      text.append('tspan').attr('x', anchorX).attr('y', anchorY).attr('dy', '-0.5em').attr('font-weight', '700').text(country);
+      text.append('tspan').attr('x', anchorX).attr('dy', '1.3em').text(value);
+      // Shift the block left by half its measured width so its right edge lands on the plot's inner margin.
+      const shiftX = -text.node().getBBox().width / 2;
+      text.selectAll('tspan').attr('x', anchorX + shiftX);
+      const box = text.node().getBBox();
+      const padX = 16; const padY = 10;
+      populationNote.insert('rect', 'text')
+        .attr('class', 'map-note-frame')
+        .attr('x', box.x - padX).attr('y', box.y - padY)
+        .attr('width', box.width + padX * 2).attr('height', box.height + padY * 2)
+        .attr('rx', 10)
+        .attr('fill', COLORS[country]).attr('fill-opacity', 0.3);
+    };
+    circles.on('mouseenter', (_event, d) => showPopulationFor(d.country)).on('mouseleave', () => populationNote.selectAll('*').remove());
   } else {
     circles.on('mouseenter', null).on('mouseleave', null);
   }
